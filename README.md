@@ -31,6 +31,44 @@ This command will guide you through setting up the GitHub app and required secre
 - You must be a repository admin to install the GitHub app and add secrets
 - This quickstart method is only available for direct Anthropic API users. For AWS Bedrock or Google Vertex AI setup, see [docs/cloud-providers.md](./docs/cloud-providers.md).
 
+## Example Usage
+
+Add a workflow file (e.g. `.github/workflows/claude.yml`) that runs the action when `@claude` is mentioned in an issue or PR comment:
+
+```yaml
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+
+jobs:
+  claude:
+    if: contains(github.event.comment.body, '@claude') || contains(github.event.issue.body, '@claude')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read # Allows Claude to read CI results on PRs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Optional: pass CLI arguments to Claude Code
+          # claude_args: |
+          #   --model claude-opus-4-1-20250805
+          #   --max-turns 10
+```
+
+More ready-to-use workflows — automated PR review, CI auto-fix, issue deduplication, and provider-specific setups — are in the [`examples/`](./examples) directory.
+
 ## Documentation
 
 - **[Migration Guide](./docs/migration-guide.md)** - **⭐ Upgrading from v0.x to v1.0**
